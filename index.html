@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Мастер-класс по созданию сайтов</title>
     
-    <!-- Telegram WebApp SDK (Важно: один раз в head) -->
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-webapp.js"></script> 
     
-    <!-- Подключение стилей без лишних зависимостей -->
     <style>
         body {
             margin: 0;
             padding: 20px;
             font-family: Arial, sans-serif;
             background: #f8f9fa;
+            color: #2c3e50;
         }
         
         .container {
@@ -27,47 +27,62 @@
         }
         
         h2 {
-            color: #2c3e50;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            color: #1e40af;
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
         }
         
-        input {
+        input, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
         
         button {
             width: 100%;
-            padding: 12px;
-            background: #3b82f6;
+            padding: 14px;
+            background: #2563eb;
             color: white;
             border: none;
             border-radius: 6px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         
         button:hover {
-            background: #2563eb;
+            background: #1d4ed8;
         }
         
         .success {
-            color: #16a34a;
+            display: none;
             text-align: center;
             margin-top: 20px;
+            padding: 15px;
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            border-radius: 6px;
+            color: #065f46;
+        }
+        
+        .error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 4px;
             display: none;
         }
     </style>
@@ -80,11 +95,24 @@
             <div class="form-group">
                 <label for="name">Имя</label>
                 <input type="text" id="name" required>
+                <div class="error" id="nameError">Введите ваше имя</div>
             </div>
             
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" required>
+                <div class="error" id="emailError">Введите корректный email</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="course">Выберите курс</label>
+                <select id="course" required>
+                    <option value="">-- Выберите --</option>
+                    <option value="html">HTML & CSS для начинающих</option>
+                    <option value="js">JavaScript с нуля</option>
+                    <option value="react">React.js для создания интерфейсов</option>
+                </select>
+                <div class="error" id="courseError">Выберите курс</div>
             </div>
             
             <button type="submit">Записаться</button>
@@ -98,32 +126,72 @@
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.ready(); // Обязательный вызов
-
+        tg.ready();
+        
+        // Получение Telegram ID
+        const telegramId = tg.initDataUnsafe.user?.id || 'unknown';
+        
+        // Валидация формы
+        function validateForm(name, email, course) {
+            let isValid = true;
+            
+            // Сброс ошибок
+            document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
+            
+            if (!name.trim()) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!course) {
+                document.getElementById('courseError').style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
         // Обработка формы
         document.getElementById('registrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const course = document.getElementById('course').value;
             
-            if (!name || !email) {
-                alert('Пожалуйста, заполните все поля');
+            // Валидация
+            if (!validateForm(name, email, course)) {
                 return;
             }
             
-            // Отправка данных в Telegram
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify({
+            try {
+                // Отправка данных в Telegram
+                tg.sendData(JSON.stringify({
                     action: 'registration',
+                    telegram_id: telegramId,
                     name: name,
-                    email: email
+                    email: email,
+                    course: course
                 }));
+                
+                // Показываем сообщение об успехе
+                document.getElementById('registrationForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Автоматическое закрытие через 3 секунды
+                setTimeout(() => {
+                    tg.close();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Ошибка отправки данных:', error);
+                alert('Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз.');
             }
-            
-            // Показываем сообщение об успехе
-            document.getElementById('registrationForm').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
         });
     </script>
 </body>
