@@ -6,83 +6,18 @@
     <title>Мастер-класс по созданию сайтов</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> 
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: #f8f9fa;
-            color: #2c3e50;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #1e40af;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background: #1d4ed8;
-        }
-        button:disabled {
-            background: #93c5fd;
-            cursor: not-allowed;
-        }
-        .success {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: #d1fae5;
-            border: 1px solid #a7f3d0;
-            border-radius: 6px;
-            color: #065f46;
-        }
-        .error {
-            color: #dc2626;
-            font-size: 14px;
-            margin-top: 4px;
-            display: none;
-        }
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-            color: #2563eb;
-        }
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f8f9fa; color: #2c3e50; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 25px; color: #1e40af; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #93c5fd; cursor: not-allowed; }
+        .success { display: none; text-align: center; margin-top: 20px; padding: 15px; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 6px; color: #065f46; }
+        .error { color: #dc2626; font-size: 14px; margin-top: 4px; display: none; }
+        .loader { display: none; text-align: center; margin-top: 20px; color: #2563eb; }
     </style>
 </head>
 <body>
@@ -112,14 +47,12 @@
             <button type="submit">Записаться</button>
             <div class="loader" id="loader">Отправка данных...</div>
         </form>
-        <div class="success" id="successMessage">
-            ✅ Вы успешно записались! Подробности придут на ваш email.
-        </div>
+        <div class="success" id="successMessage">✅ Вы успешно записались! Подробности придут на ваш email.</div>
     </div>
 
     <script>
-        // Проверяем, что Telegram доступен
-        if (typeof Telegram === "undefined") {
+        // Проверка доступности Telegram WebApp
+        if (typeof Telegram === "undefined" || typeof Telegram.WebApp === "undefined") {
             alert("Откройте эту страницу через Telegram");
             document.body.innerHTML = "<p>⚠️ Эта страница работает только через Telegram</p>";
             throw new Error("Telegram WebApp недоступен");
@@ -133,32 +66,29 @@
         const telegramUser = initData.user || null;
 
         if (!telegramUser) {
-            alert("Ошибка: Telegram ID не найден. Откройте страницу через Telegram");
+            alert("Ошибка: Telegram ID не найден");
             document.body.innerHTML = "<p>⚠️ Эта страница работает только через Telegram</p>";
             throw new Error("Telegram user data недоступен");
         }
 
-        const telegramId = telegramUser.id;
+        const telegramId = parseInt(telegramUser.id);
 
         // Функция валидации формы
         function validateForm(name, email, course) {
             let isValid = true;
             document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
 
-            // Проверка имени
             if (!name.trim()) {
                 document.getElementById('nameError').style.display = 'block';
                 isValid = false;
             }
 
-            // Проверка email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 document.getElementById('emailError').style.display = 'block';
                 isValid = false;
             }
 
-            // Проверка курса
             if (!course) {
                 document.getElementById('courseError').style.display = 'block';
                 isValid = false;
@@ -175,9 +105,7 @@
             const email = document.getElementById('email').value.trim();
             const course = document.getElementById('course').value;
 
-            if (!validateForm(name, email, course)) {
-                return;
-            }
+            if (!validateForm(name, email, course)) return;
 
             try {
                 document.getElementById('loader').style.display = 'block';
