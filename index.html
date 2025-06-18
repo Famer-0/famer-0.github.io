@@ -61,17 +61,18 @@
         const tg = Telegram.WebApp;
         tg.ready();
 
-        // Безопасный доступ к initData
-        const initData = tg.initData || {};
-        const telegramUser = initData.user || null;
+        // Используем initDataUnsafe для получения данных
+        const telegramUser = Telegram.WebApp.initDataUnsafe?.user || null;
 
         if (!telegramUser) {
-            alert("Ошибка: Telegram ID не найден");
+            alert("Ошибка: Telegram ID не найден. Откройте страницу через Telegram.");
             document.body.innerHTML = "<p>⚠️ Эта страница работает только через Telegram</p>";
             throw new Error("Telegram user data недоступен");
         }
 
         const telegramId = parseInt(telegramUser.id);
+        console.log("Telegram ID:", telegramId); // Отладка
+
 
         // Функция валидации формы
         function validateForm(name, email, course) {
